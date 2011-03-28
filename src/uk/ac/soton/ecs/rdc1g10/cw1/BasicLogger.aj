@@ -7,10 +7,28 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * This aspect implements a basic class logger as requested in the document
+ * from https://secure.ecs.soton.ac.uk/notes/comp6035/cwk1.pdf
+ * 
+ * @author Radu Cotescu (rdc1g10@ecs.soton.ac.uk)
+ */
 public aspect BasicLogger {
 
+	/**
+	 * Pointcut declaration that intercepts all the calls to the constructors
+	 * of @Logging annotated classes, no matter of the containing package 
+	 */
 	pointcut constructor(): call((@(*..Logging) *).new(..));
 
+	/**
+	 * Advice that uses the constructor() pointcut; it instantiates a Date object
+	 * right after the constructor successfully created the object and passes
+	 * it along with the source file location where a constructor call has been
+	 * used to the private writeEntryToFile method
+	 * 
+	 * @param o The object returned by the intercepted constructor
+	 */
 	after() returning(Object o) : constructor() {
 		String className = o.getClass().getName();
 		Date time = new Date();
@@ -18,6 +36,14 @@ public aspect BasicLogger {
 		writeEntryToFile(className, time, location);
 	}
 
+	/**
+	 * For each call writes the CSV entry in a file with the name
+	 * ${className}_BasicLogger.csv
+	 * 
+	 * @param className the name of the class for which the logging is done
+	 * @param time the time at which the constructor created the object
+	 * @param location the location of the constructor call
+	 */
 	private void writeEntryToFile(String className, Date time, String location) {
 		File file = new File(className + "_BasicLogger.csv");
 		BufferedWriter bw = null;
